@@ -1,0 +1,82 @@
+PROJECT TASK: MAKE DASHBOARD FUNCTIONAL & DYNAMIC USING FIREBASE
+
+OBJECTIVE:
+Make the Bhasha-Mitra language learning dashboard fully functional by:
+1. Replacing all hardcoded text (like username, XP, streak, levels, lessons, etc.)
+2. Connecting frontend components to Firebase Realtime Database / Firestore and Firebase Authentication.
+3. Ensuring that each section of the dashboard dynamically reflects the real data from Firebase for the currently logged-in user.
+
+TOOLS:
+- React (Vite)
+- Firebase (Auth, Firestore)
+- Optional: Firebase Hosting & Functions
+
+-------------------------------------------
+DASHBOARD COMPONENTS TO CONNECT TO FIREBASE:
+-------------------------------------------
+
+✅ 1. AUTHENTICATION
+- Use Firebase Authentication to login/signup users.
+- After login, fetch `uid` of the user to load personalized data.
+
+✅ 2. HERO BANNER
+File: `HeroBanner.jsx`
+Replace:
+- "Aryan" → fetch from `users/{uid}/profile.name`
+- "Hindi 🇮🇳" → fetch from `users/{uid}/profile.language`
+- "XP: 1,450" → fetch from `users/{uid}/stats.xp`
+- "Streak: 🔥 7 Days" → fetch from `users/{uid}/stats.streak`
+
+✅ 3. CONTINUE LEARNING CARD
+File: `ContinueLearningCard.jsx`
+Replace:
+- Hardcoded lesson name with `users/{uid}/lastActivity.lesson`
+- Show correct level and lesson progress from `users/{uid}/progress/{level}`
+
+✅ 4. LEVEL GALLERY (CARD VIEW)
+File: `LevelGallery.jsx`
+Each card represents a level (Basics 1, Grammar 1, etc.)
+- Fetch levels list from `/levels`
+- For each user, get their progress from `users/{uid}/progress/{levelId}` to show completion % and lock/unlock.
+
+✅ 5. LEARNING PATH
+File: `LearningPath.jsx`
+- Show all levels and lessons
+- Get structure from `/levels/{levelId}/lessons`
+- Fetch completion status from `users/{uid}/progress/{levelId}/lessonStatus`
+
+✅ 6. QUICK PRACTICE
+File: `QuickPractice.jsx`
+- Show game tiles like “Vocabulary Game”, “Fill in Blanks”, etc.
+- Fetch unlocked games from `users/{uid}/gamesUnlocked`
+- Show game performance stats (accuracy, attempts) from `users/{uid}/gameStats/{gameId}`
+
+✅ 7. CHATBOT WIDGET
+File: `ChatbotWidget.jsx`
+- Let user input be stored in `users/{uid}/chatHistory`
+- Optionally integrate OpenAI or Dialogflow for QnA replies
+
+✅ 8. ACHIEVEMENTS
+File: `Achievements.jsx`
+- Fetch badges from `users/{uid}/achievements` array
+- Each badge has `title`, `earnedOn`, `icon`
+
+✅ 9. WEEKLY STATS
+File: `WeeklyStats.jsx`
+- Fetch weekly data from `users/{uid}/weeklyStats`
+  - Structure: `{ weekStart: '2025-05-12', xp: 350, accuracy: 88, timeSpent: 3.75h }`
+- Graph optional: use Chart.js or Recharts
+
+✅ 10. LEADERBOARD
+File: `Leaderboard.jsx`
+- Get top users list from `globalLeaderboard` collection
+- Compare user XP to others: sort by `xp` descending
+
+✅ 11. LANGUAGE SWITCHER
+Dropdown component
+- When switched, update `users/{uid}/profile.language` and re-fetch data
+
+--------------------------------------
+📁 FIRESTORE STRUCTURE EXAMPLE (PATHS)
+--------------------------------------
+
