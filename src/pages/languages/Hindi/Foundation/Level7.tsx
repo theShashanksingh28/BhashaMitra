@@ -1,14 +1,146 @@
-import React from 'react';
-import LevelTemplate from '@/components/LevelTemplate';
+import React, { useState } from "react";
 
-const HindiExplorerLevel7 = () => {
+const vocabWords = [
+  { word: "घर", meaning: "Home", type: "Noun", pronunciation: "ghar" },
+  { word: "पानी", meaning: "Water", type: "Noun", pronunciation: "paani" },
+  { word: "किताब", meaning: "Book", type: "Noun", pronunciation: "kitaab" },
+  { word: "बड़ा", meaning: "Big", type: "Adjective", pronunciation: "bada" },
+  { word: "छोटा", meaning: "Small", type: "Adjective", pronunciation: "chhota" },
+  { word: "लंबा", meaning: "Tall/Long", type: "Adjective", pronunciation: "lamba" },
+  { word: "मीठा", meaning: "Sweet", type: "Adjective", pronunciation: "meetha" },
+  { word: "दरवाज़ा", meaning: "Door", type: "Noun", pronunciation: "darwaza" },
+  { word: "सड़क", meaning: "Road", type: "Noun", pronunciation: "sadak" },
+  { word: "कपड़ा", meaning: "Cloth", type: "Noun", pronunciation: "kapda" },
+  { word: "ठंडा", meaning: "Cold", type: "Adjective", pronunciation: "thanda" },
+  { word: "गरम", meaning: "Hot", type: "Adjective", pronunciation: "garam" },
+];
+
+const speakHindi = (text) => {
+  if (!window.speechSynthesis) return;
+
+  const utterance = new SpeechSynthesisUtterance();
+
+  const voices = window.speechSynthesis.getVoices();
+  const hindiVoice = voices.find(
+    (v) => v.lang.startsWith("hi") || v.name.toLowerCase().includes("hindi")
+  );
+
+  utterance.voice = hindiVoice || voices[0];
+  utterance.rate = 0.9;
+  utterance.pitch = 1.1;
+  utterance.text = text;
+
+  window.speechSynthesis.speak(utterance);
+};
+
+const Level7BhashaMitra = () => {
+  const [quizWord, setQuizWord] = useState(null);
+  const [selectedMeaning, setSelectedMeaning] = useState("");
+  const [feedback, setFeedback] = useState("");
+
+  // Pick a random vocab word for quiz
+  const startQuiz = () => {
+    const randomWord = vocabWords[Math.floor(Math.random() * vocabWords.length)];
+    setQuizWord(randomWord);
+    setSelectedMeaning("");
+    setFeedback("");
+  };
+
+  const checkAnswer = () => {
+    if (!quizWord) return;
+    if (selectedMeaning === quizWord.meaning) {
+      setFeedback("✅ Correct! Well done.");
+    } else {
+      setFeedback(`❌ Incorrect. Try again.`);
+    }
+  };
+
   return (
-    <LevelTemplate
-      language="Hindi"
-      stage="Explorer"
-      levelNumber={7}
-    />
+    <div className="max-w-xl mx-auto p-6 bg-white rounded shadow-lg mt-10">
+      <h1 className="text-3xl font-bold mb-6 text-center">Bhasha Mitra - Level 7</h1>
+
+      <section className="mb-8">
+        <h2 className="text-xl font-semibold mb-4">Learn Everyday Nouns & Adjectives</h2>
+        <div className="grid grid-cols-2 gap-4">
+          {vocabWords.map(({ word, meaning, type, pronunciation }) => (
+            <div
+              key={word}
+              className="border rounded p-4 cursor-pointer hover:bg-yellow-50"
+              onClick={() => speakHindi(pronunciation)}
+              title={`Hear pronunciation of ${word}`}
+            >
+              <div className="text-3xl font-bold mb-1 text-center">{word}</div>
+              <div className="text-center mb-1 italic text-gray-700">{type}</div>
+              <div className="text-center font-semibold">{meaning}</div>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  speakHindi(pronunciation);
+                }}
+                className="mt-2 w-full bg-blue-300 rounded py-1 hover:bg-blue-500 text-white"
+              >
+                🔊 Pronounce
+              </button>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="mb-8 p-4 border rounded bg-gray-50">
+        <h3 className="text-lg font-semibold mb-3 text-center">Quiz: Match the Meaning</h3>
+        {!quizWord ? (
+          <button
+            onClick={startQuiz}
+            className="block mx-auto bg-green-600 text-white px-6 py-2 rounded hover:bg-green-800"
+          >
+            Start Quiz
+          </button>
+        ) : (
+          <>
+            <div className="text-4xl font-bold mb-4 text-center">{quizWord.word}</div>
+            <div className="flex flex-wrap justify-center gap-3 mb-4">
+              {vocabWords.map(({ meaning }) => (
+                <button
+                  key={meaning}
+                  onClick={() => setSelectedMeaning(meaning)}
+                  className={`px-4 py-2 rounded border cursor-pointer ${
+                    selectedMeaning === meaning
+                      ? "bg-blue-600 text-white"
+                      : "bg-white hover:bg-blue-100"
+                  }`}
+                >
+                  {meaning}
+                </button>
+              ))}
+            </div>
+            <div className="text-center">
+              <button
+                onClick={checkAnswer}
+                className="bg-purple-600 text-white px-6 py-2 rounded hover:bg-purple-800 mr-4"
+              >
+                Check Answer
+              </button>
+              <button
+                onClick={startQuiz}
+                className="bg-gray-400 text-black px-6 py-2 rounded hover:bg-gray-600"
+              >
+                Next Word
+              </button>
+            </div>
+            {feedback && (
+              <div
+                className={`mt-4 font-semibold text-center ${
+                  feedback.startsWith("✅") ? "text-green-600" : "text-red-600"
+                }`}
+              >
+                {feedback}
+              </div>
+            )}
+          </>
+        )}
+      </section>
+    </div>
   );
 };
 
-export default HindiExplorerLevel7;
+export default Level7BhashaMitra;

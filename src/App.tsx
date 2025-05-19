@@ -18,15 +18,26 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/theme-provider";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import StageLevels from './pages/languages/StageLevels';
+import HomePage from '@/pages/HomePage';
 import LevelOne from './pages/languages/Hindi/Foundation/Level1';
+import LevelTwo from './pages/languages/Hindi/Foundation/Level2';
+import LevelThree from './pages/languages/Hindi/Foundation/Level3';
+import LevelFour from './pages/languages/Hindi/Foundation/Level4';
+import LevelFive from './pages/languages/Hindi/Foundation/Level5';
+import LevelSix from './pages/languages/Hindi/Foundation/Level6';
+import LevelSeven from './pages/languages/Hindi/Foundation/Level7';
+import LevelEight from './pages/languages/Hindi/Foundation/Level8';
+import LevelNine from './pages/languages/Hindi/Foundation/Level9';
+import LevelTen from './pages/languages/Hindi/Foundation/Level10';
+
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { currentUser, loading } = useAuth();
-  
+
   if (loading) {
     return <div>Loading...</div>;
   }
-  
+
   return currentUser ? <>{children}</> : <Navigate to="/login" />;
 }
 
@@ -36,6 +47,7 @@ const App = () => (
       <TooltipProvider>
         <Router>
           <Routes>
+            <Route path="/" element={<HomePage />} />
             <Route path="/login" element={<LoginForm />} />
             <Route path="/signup" element={<SignupForm />} />
             <Route
@@ -79,6 +91,79 @@ const App = () => (
               }
             />
             <Route
+              path="/languages/Hindi/foundation/level2"
+              element={
+                <PrivateRoute>
+                  <LevelTwo />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/languages/Hindi/foundation/level3"
+              element={
+                <PrivateRoute>
+                  <LevelThree />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/languages/Hindi/foundation/level4"
+              element={
+                <PrivateRoute>
+                  <LevelFour />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/languages/Hindi/foundation/level5"
+              element={
+                <PrivateRoute>
+                  <LevelFive />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/languages/Hindi/foundation/level6"
+              element={
+                <PrivateRoute>
+                  <LevelSix />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/languages/Hindi/foundation/level7"
+              element={
+                <PrivateRoute>
+                  <LevelSeven />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/languages/Hindi/foundation/level8"
+              element={
+                <PrivateRoute>
+                  <LevelEight />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/languages/Hindi/foundation/level9"
+              element={
+                <PrivateRoute>
+                  <LevelNine />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/languages/Hindi/foundation/level10"
+              element={
+                <PrivateRoute>
+                  <LevelTen />
+                </PrivateRoute>
+              }
+            />
+
+            <Route
               path="/languages/:language/:stage/level:levelNumber"
               element={
                 <PrivateRoute>
@@ -118,7 +203,6 @@ const App = () => (
                 </PrivateRoute>
               }
             />
-            <Route path="/" element={<Navigate to="/dashboard" />} />
           </Routes>
         </Router>
         <Toaster />
