@@ -1,14 +1,29 @@
-import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { motion } from 'framer-motion';
 
 const Hero = () => {
+  const [isHovered, setIsHovered] = useState(false);
+  const navigate = useNavigate();
+  
+  const handleGetStarted = () => {
+    // Navigate to dashboard when clicked
+    navigate('/dashboard');
+  };
+
   return (
-    <div className="bg-slate-50 py-16">
-      <div className="container mx-auto px-4 md:px-6 flex flex-col md:flex-row items-center gap-8">
-        <div className="md:w-1/2 space-y-6">
+    <div className="bg-gradient-to-b from-slate-50 to-indigo-50 py-20">
+      <div className="container mx-auto px-4 md:px-6 flex flex-col md:flex-row items-center gap-12">
+        <motion.div 
+          className="md:w-1/2 space-y-8"
+          initial={{ opacity: 0, x: -50 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5 }}
+        >
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight">
             Learn Indian Languages with{' '}
-            <span className="text-indigo-600">भाषामित्र</span>
+            <span className="block mt-2 text-indigo-600">भाषामित्र</span>
           </h1>
           
           <p className="text-gray-600 text-lg">
@@ -16,36 +31,63 @@ const Hero = () => {
             interactive, personalized language learning platform.
           </p>
           
-          <div className="flex flex-wrap gap-3 pt-2">
-            <div className="bg-white px-4 py-2 rounded-full text-sm shadow-sm">
+          <div className="flex flex-wrap gap-3 pt-4">
+            <div className="bg-white px-4 py-2 rounded-full text-sm shadow-sm hover:shadow-md transition-shadow duration-300">
               22 Official Languages
             </div>
-            <div className="bg-white px-4 py-2 rounded-full text-sm shadow-sm">
+            <div className="bg-white px-4 py-2 rounded-full text-sm shadow-sm hover:shadow-md transition-shadow duration-300">
               Interactive Lessons
             </div>
-            <div className="bg-white px-4 py-2 rounded-full text-sm shadow-sm">
+            <div className="bg-white px-4 py-2 rounded-full text-sm shadow-sm hover:shadow-md transition-shadow duration-300">
               Cultural Insights
             </div>
-            <div className="bg-white px-4 py-2 rounded-full text-sm shadow-sm">
+            <div className="bg-white px-4 py-2 rounded-full text-sm shadow-sm hover:shadow-md transition-shadow duration-300">
               AI-powered Chatbot
             </div>
           </div>
           
-          <div className="flex flex-wrap gap-4 pt-4">
-            <Link to="/get-started">
-              <Button className="bg-indigo-600 hover:bg-indigo-700">Get Started</Button>
-            </Link>
+          <div className="flex flex-wrap gap-6 pt-6">
+            <Button 
+              className={`bg-indigo-600 hover:bg-indigo-700 rounded-full px-8 py-6 text-lg font-medium transition-all duration-300 transform ${isHovered ? 'scale-105' : ''}`}
+              onMouseEnter={() => setIsHovered(true)}
+              onMouseLeave={() => setIsHovered(false)}
+              onClick={handleGetStarted}
+            >
+              Get Started
+            </Button>
             <Link to="/learn-more">
-              <Button variant="outline">Learn More</Button>
+              <Button variant="outline" className="rounded-full px-8 py-6 text-lg border-2 hover:bg-indigo-50 transition-colors duration-300">
+                Learn More
+              </Button>
             </Link>
           </div>
-        </div>
+        </motion.div>
         
-        <div className="md:w-1/2">
-          <div className="bg-gray-200 rounded-lg aspect-video flex items-center justify-center">
-            <p className="text-gray-500">Language Learning Interface Image</p>
+        <motion.div 
+          className="md:w-1/2"
+          initial={{ opacity: 0, x: 50 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <div className="bg-white rounded-2xl shadow-lg overflow-hidden transform transition-all duration-300 hover:shadow-xl">
+            <div className="bg-indigo-100 aspect-video flex items-center justify-center p-6">
+              <div className="text-center">
+                <div className="text-indigo-600 text-5xl font-bold mb-4">भाषामित्र</div>
+                <p className="text-gray-700">Your language learning journey begins here</p>
+              </div>
+            </div>
+            <div className="p-6 bg-white">
+              <div className="flex justify-between items-center">
+                <div className="flex space-x-2">
+                  <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                  <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+                  <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                </div>
+                <div className="text-xs text-gray-500">Language Interface Demo</div>
+              </div>
+            </div>
           </div>
-        </div>
+        </motion.div>
       </div>
     </div>
   );

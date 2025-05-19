@@ -23,8 +23,12 @@ const HomePage = () => {
     <div className="min-h-screen flex flex-col">
       <Navbar />
       <Hero />
-      <Features />
-      <Benefits />
+      <section id="features">
+        <Features />
+      </section>
+      <section id="benefits">
+        <Benefits />
+      </section>
       <CallToAction />
       <Footer />
     </div>
