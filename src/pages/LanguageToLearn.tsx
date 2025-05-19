@@ -55,7 +55,7 @@ export default function LanguagesToLearn() {
     localStorage.setItem('hasSelectedLanguages', 'true');
     
     // Navigate to the language learning path
-    navigate(/languages/${language});
+    navigate(`/languages/${language}`);
   };
 
   return (
