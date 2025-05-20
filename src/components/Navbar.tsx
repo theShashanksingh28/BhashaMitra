@@ -1,16 +1,41 @@
 import { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/contexts/AuthContext';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
 const Navbar = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [hasNativeLanguage, setHasNativeLanguage] = useState(true);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { currentUser, logout } = useAuth();
 
   useEffect(() => {
-    // Check login status
-    setIsLoggedIn(localStorage.getItem('isLoggedIn') === 'true');
+    const checkAuthAndLanguage = async () => {
+      if (currentUser) {
+        setIsLoggedIn(true);
+        // Check if user has selected native language
+        const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          setHasNativeLanguage(!!userData.nativeLanguage);
+          
+          // Redirect to language selection if no native language is set
+          if (!userData.nativeLanguage && location.pathname !== '/native-language') {
+            navigate('/native-language');
+          }
+        }
+      } else {
+        setIsLoggedIn(false);
+        setHasNativeLanguage(true);
+      }
+    };
+
+    checkAuthAndLanguage();
     
     // Add scroll event listener
     const handleScroll = () => {
@@ -26,12 +51,17 @@ const Navbar = () => {
     return () => {
       window.removeEventListener('scroll', handleScroll);
     };
-  }, []);
+  }, [currentUser, location.pathname, navigate]);
 
-  const handleLogout = () => {
-    localStorage.removeItem('isLoggedIn');
-    setIsLoggedIn(false);
-    window.location.href = '/';
+  const handleLogout = async () => {
+    try {
+      await logout();
+      setIsLoggedIn(false);
+      setHasNativeLanguage(true);
+      navigate('/');
+    } catch (error) {
+      console.error('Error logging out:', error);
+    }
   };
 
   const toggleMobileMenu = () => {
@@ -40,14 +70,6 @@ const Navbar = () => {
 
   const isActive = (path) => {
     return location.pathname === path;
-  };
-
-  const scrollToSection = (sectionId: string) => {
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-      setMobileMenuOpen(false);
-    }
   };
 
   return (
@@ -65,26 +87,20 @@ const Navbar = () => {
         
         {/* Desktop Navigation */}
         <div className="hidden md:flex space-x-6 items-center">
-          <button 
-            onClick={() => scrollToSection('features')}
-            className={`text-sm font-medium transition-colors duration-200 px-2 py-1 rounded-md ${
-              location.hash === '#features' 
-                ? 'text-indigo-700 bg-indigo-50' 
-                : 'text-gray-600 hover:text-indigo-700 hover:bg-indigo-50/50'
-            }`}
-          >
+          <Link to="/features" className={`text-sm font-medium transition-colors duration-200 px-2 py-1 rounded-md ${
+            isActive('/features') 
+              ? 'text-indigo-700 bg-indigo-50' 
+              : 'text-gray-600 hover:text-indigo-700 hover:bg-indigo-50/50'
+          }`}>
             Features
-          </button>
-          <button 
-            onClick={() => scrollToSection('benefits')}
-            className={`text-sm font-medium transition-colors duration-200 px-2 py-1 rounded-md ${
-              location.hash === '#benefits' 
-                ? 'text-indigo-700 bg-indigo-50' 
-                : 'text-gray-600 hover:text-indigo-700 hover:bg-indigo-50/50'
-            }`}
-          >
+          </Link>
+          <Link to="/benefits" className={`text-sm font-medium transition-colors duration-200 px-2 py-1 rounded-md ${
+            isActive('/benefits') 
+              ? 'text-indigo-700 bg-indigo-50' 
+              : 'text-gray-600 hover:text-indigo-700 hover:bg-indigo-50/50'
+          }`}>
             Benefits
-          </button>
+          </Link>
           <Link to="/about" className={`text-sm font-medium transition-colors duration-200 px-2 py-1 rounded-md ${
             isActive('/about') 
               ? 'text-indigo-700 bg-indigo-50' 
@@ -173,18 +189,20 @@ const Navbar = () => {
         mobileMenuOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
       }`}>
         <div className="flex flex-col space-y-3 px-4 py-4 bg-white/95 border-t border-gray-100">
-          <button 
-            onClick={() => scrollToSection('features')}
-            className={`px-3 py-2 rounded-lg text-left ${location.hash === '#features' ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700'}`}
+          <Link 
+            to="/features" 
+            className={`px-3 py-2 rounded-lg ${isActive('/features') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700'}`}
+            onClick={() => setMobileMenuOpen(false)}
           >
             Features
-          </button>
-          <button 
-            onClick={() => scrollToSection('benefits')}
-            className={`px-3 py-2 rounded-lg text-left ${location.hash === '#benefits' ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700'}`}
+          </Link>
+          <Link 
+            to="/benefits" 
+            className={`px-3 py-2 rounded-lg ${isActive('/benefits') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700'}`}
+            onClick={() => setMobileMenuOpen(false)}
           >
             Benefits
-          </button>
+          </Link>
           <Link 
             to="/about" 
             className={`px-3 py-2 rounded-lg ${isActive('/about') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700'}`}

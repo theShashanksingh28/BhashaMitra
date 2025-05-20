@@ -21,7 +21,10 @@ const SignupForm: React.FC = () => {
     try {
       await signup(email, password, name);
       toast.success('Account created successfully!');
-      navigate('/language-selection'); // Navigate to language selection after signup
+      // Store user's name in localStorage
+      localStorage.setItem('userName', name);
+      // Navigate to native language selection first
+      navigate('/native-language');
     } catch (error) {
       console.error('Signup error:', error);
       toast.error('Failed to create account. Please try again.');

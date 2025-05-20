@@ -1,5 +1,9 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { doc, setDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import { toast } from "sonner";
 
 const languages = [
   { name: "Assamese", script: "Assamese" },
@@ -29,13 +33,33 @@ const languages = [
 
 export default function NativeLanguageSelection() {
   const navigate = useNavigate();
+  const { currentUser } = useAuth();
 
-  const handleLanguageSelect = (language: string) => {
-    console.log('Selected native language:', language);
-    // Store the selected native language
-    localStorage.setItem('nativeLanguage', language);
-    // Navigate to the language selection page
-    navigate('/language-selection');
+  const handleLanguageSelect = async (language: string) => {
+    try {
+      if (!currentUser) {
+        toast.error("Please log in to continue");
+        navigate("/login");
+        return;
+      }
+
+      // Save to Firebase
+      await setDoc(doc(db, "users", currentUser.uid), {
+        nativeLanguage: language,
+        updatedAt: new Date().toISOString()
+      }, { merge: true });
+
+      // Store in localStorage for immediate access
+      localStorage.setItem('nativeLanguage', language);
+      localStorage.setItem('hasSelectedLanguages', 'true');
+      
+      toast.success("Native language saved successfully!");
+      // Navigate to dashboard instead of language selection
+      navigate('/dashboard');
+    } catch (error) {
+      console.error("Error saving native language:", error);
+      toast.error("Failed to save native language. Please try again.");
+    }
   };
 
   return (
