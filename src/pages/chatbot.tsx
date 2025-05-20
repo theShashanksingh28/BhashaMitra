@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 
 interface SpeechRecognitionEvent extends Event {
   results: {
@@ -38,12 +38,33 @@ const DictionaryTranslatorChatbot: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [listening, setListening] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [shouldScroll, setShouldScroll] = useState(false);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
 
+  // Scroll to bottom of chat container only
+  const scrollToBottom = useCallback(() => {
+    if (messagesEndRef.current && chatContainerRef.current) {
+      const container = chatContainerRef.current;
+      container.scrollTop = container.scrollHeight;
+    }
+  }, []);
+
+  // Handle new messages
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+    if (shouldScroll) {
+      scrollToBottom();
+    }
+  }, [messages, shouldScroll, scrollToBottom]);
+
+  // Enable scrolling after initial render
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShouldScroll(true);
+    }, 100);
+    return () => clearTimeout(timer);
+  }, []);
 
   const speak = (text: string, lang = "hi-IN") => {
     const utterance = new SpeechSynthesisUtterance(text);
@@ -154,7 +175,11 @@ const DictionaryTranslatorChatbot: React.FC = () => {
 
   return (
     <div className="h-full flex flex-col">
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div 
+        ref={chatContainerRef}
+        className="flex-1 overflow-y-auto p-4 space-y-4 scroll-smooth"
+        style={{ scrollBehavior: 'smooth' }}
+      >
         {messages.map((msg, idx) => (
           <div
             key={idx}

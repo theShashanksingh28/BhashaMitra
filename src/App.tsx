@@ -1,52 +1,71 @@
-import React from 'react';
+import React, { lazy, Suspense, memo } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import LoginForm from '@/components/auth/LoginForm';
-import SignupForm from '@/components/auth/SignupForm';
-import Dashboard from '@/pages/Dashboard';
-import Profile from '@/pages/Profile';
-import Certificates from '@/pages/Certificates';
-import Badges from '@/pages/Badges';
-import LanguageToLearn from '@/pages/LanguageToLearn';
-import NativeLanguageSelection from '@/pages/NativeLanguageSelection';
-import LanguageStages from './pages/languages/LanguageStages';
-import LanguageLevel from './pages/languages/LanguageLevel';
-import LevelTemplate from './components/LevelTemplate';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/theme-provider";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import StageLevels from './pages/languages/StageLevels';
-import HomePage from '@/pages/HomePage';
-import LevelOne from './pages/languages/Hindi/Foundation/Level1';
-import LevelTwo from './pages/languages/Hindi/Foundation/Level2';
-import LevelThree from './pages/languages/Hindi/Foundation/Level3';
-import LevelFour from './pages/languages/Hindi/Foundation/Level4';
-import LevelFive from './pages/languages/Hindi/Foundation/Level5';
-import LevelSix from './pages/languages/Hindi/Foundation/Level6';
-import LevelSeven from './pages/languages/Hindi/Foundation/Level7';
-import LevelEight from './pages/languages/Hindi/Foundation/Level8';
-import LevelNine from './pages/languages/Hindi/Foundation/Level9';
-import LevelTen from './pages/languages/Hindi/Foundation/Level10';
+import LevelTemplate from './components/LevelTemplate';
 
-// Public route component - accessible without authentication
-function PublicRoute({ children }: { children: React.ReactNode }) {
-  return <>{children}</>;
-}
+// Lazy load components
+const LoginForm = lazy(() => import('@/components/auth/LoginForm'));
+const SignupForm = lazy(() => import('@/components/auth/SignupForm'));
+const Dashboard = lazy(() => import('@/pages/Dashboard'));
+const Profile = lazy(() => import('@/pages/Profile'));
+const Certificates = lazy(() => import('@/pages/Certificates'));
+const Badges = lazy(() => import('@/pages/Badges'));
+const LanguageToLearn = lazy(() => import('@/pages/LanguageToLearn'));
+const NativeLanguageSelection = lazy(() => import('@/pages/NativeLanguageSelection'));
+const LanguageStages = lazy(() => import('./pages/languages/LanguageStages'));
+const LanguageLevel = lazy(() => import('./pages/languages/LanguageLevel'));
+const HomePage = lazy(() => import('@/pages/HomePage'));
 
-// Private route component - requires authentication
-function PrivateRoute({ children }: { children: React.ReactNode }) {
+// Lazy load Hindi levels
+const LevelOne = lazy(() => import('./pages/languages/Hindi/Foundation/Level1'));
+const LevelTwo = lazy(() => import('./pages/languages/Hindi/Foundation/Level2'));
+const LevelThree = lazy(() => import('./pages/languages/Hindi/Foundation/Level3'));
+const LevelFour = lazy(() => import('./pages/languages/Hindi/Foundation/Level4'));
+const LevelFive = lazy(() => import('./pages/languages/Hindi/Foundation/Level5'));
+const LevelSix = lazy(() => import('./pages/languages/Hindi/Foundation/Level6'));
+const LevelSeven = lazy(() => import('./pages/languages/Hindi/Foundation/Level7'));
+const LevelEight = lazy(() => import('./pages/languages/Hindi/Foundation/Level8'));
+const LevelNine = lazy(() => import('./pages/languages/Hindi/Foundation/Level9'));
+const LevelTen = lazy(() => import('./pages/languages/Hindi/Foundation/Level10'));
+
+// Memoize the loading spinner
+const LoadingSpinner = memo(() => (
+  <div className="flex items-center justify-center min-h-screen">
+    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+  </div>
+));
+
+// Memoize route components
+const PublicRoute = memo(({ children }: { children: React.ReactNode }) => (
+  <Suspense fallback={<LoadingSpinner />}>
+    {children}
+  </Suspense>
+));
+
+const PrivateRoute = memo(({ children }: { children: React.ReactNode }) => {
   const { currentUser, loading } = useAuth();
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <LoadingSpinner />;
   }
 
-  return currentUser ? <>{children}</> : <Navigate to="/login" />;
-}
+  return currentUser ? (
+    <Suspense fallback={<LoadingSpinner />}>
+      {children}
+    </Suspense>
+  ) : (
+    <Navigate to="/login" />
+  );
+});
 
-const App = () => (
+// Memoize the main App component
+const App = memo(() => (
   <LanguageProvider>
     <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
       <TooltipProvider>
@@ -214,12 +233,12 @@ const App = () => (
               }
             />
           </Routes>
+          <Toaster />
+          <Sonner />
         </Router>
-        <Toaster />
-        <Sonner />
       </TooltipProvider>
     </ThemeProvider>
   </LanguageProvider>
-);
+));
 
 export default App;

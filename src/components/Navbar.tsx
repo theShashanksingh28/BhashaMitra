@@ -1,11 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, memo } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
-const Navbar = () => {
+// Memoize the Navbar component
+const Navbar = memo(() => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -14,46 +15,54 @@ const Navbar = () => {
   const navigate = useNavigate();
   const { currentUser, logout } = useAuth();
 
-  useEffect(() => {
-    const checkAuthAndLanguage = async () => {
-      if (currentUser) {
-        setIsLoggedIn(true);
-        // Check if user has selected native language
+  // Memoize the scroll handler
+  const handleScroll = useCallback(() => {
+    const shouldBeScrolled = window.scrollY > 20;
+    if (shouldBeScrolled !== isScrolled) {
+      setIsScrolled(shouldBeScrolled);
+    }
+  }, [isScrolled]);
+
+  // Memoize the auth check
+  const checkAuthAndLanguage = useCallback(async () => {
+    if (!currentUser) {
+      setIsLoggedIn(false);
+      setHasNativeLanguage(true);
+      return;
+    }
+
+    setIsLoggedIn(true);
+    
+    // Only check native language if we're not already on the native language page
+    if (location.pathname !== '/native-language') {
+      try {
         const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
         if (userDoc.exists()) {
           const userData = userDoc.data();
-          setHasNativeLanguage(!!userData.nativeLanguage);
+          const hasLanguage = !!userData.nativeLanguage;
+          setHasNativeLanguage(hasLanguage);
           
-          // Redirect to language selection if no native language is set
-          if (!userData.nativeLanguage && location.pathname !== '/native-language') {
+          if (!hasLanguage) {
             navigate('/native-language');
           }
         }
-      } else {
-        setIsLoggedIn(false);
-        setHasNativeLanguage(true);
+      } catch (error) {
+        console.error('Error checking user language:', error);
       }
-    };
-
-    checkAuthAndLanguage();
-    
-    // Add scroll event listener
-    const handleScroll = () => {
-      if (window.scrollY > 20) {
-        setIsScrolled(true);
-      } else {
-        setIsScrolled(false);
-      }
-    };
-    
-    window.addEventListener('scroll', handleScroll);
-    
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
+    }
   }, [currentUser, location.pathname, navigate]);
 
-  const handleLogout = async () => {
+  useEffect(() => {
+    checkAuthAndLanguage();
+  }, [checkAuthAndLanguage]);
+
+  useEffect(() => {
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [handleScroll]);
+
+  // Memoize handlers
+  const handleLogout = useCallback(async () => {
     try {
       await logout();
       setIsLoggedIn(false);
@@ -62,15 +71,15 @@ const Navbar = () => {
     } catch (error) {
       console.error('Error logging out:', error);
     }
-  };
+  }, [logout, navigate]);
 
-  const toggleMobileMenu = () => {
-    setMobileMenuOpen(!mobileMenuOpen);
-  };
+  const toggleMobileMenu = useCallback(() => {
+    setMobileMenuOpen(prev => !prev);
+  }, []);
 
-  const isActive = (path) => {
+  const isActive = useCallback((path: string) => {
     return location.pathname === path;
-  };
+  }, [location.pathname]);
 
   return (
     <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
@@ -265,6 +274,6 @@ const Navbar = () => {
       )}
     </header>
   );
-};
+});
 
 export default Navbar;
