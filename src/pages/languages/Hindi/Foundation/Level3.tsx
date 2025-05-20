@@ -1,7 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
+import { useAuth } from '@/contexts/AuthContext';
+import { doc, updateDoc, getDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 const words = [
   { phrase: 'पानी', roman: 'Pani', meaning: 'Water' },
@@ -62,6 +67,65 @@ const WordCard: React.FC<{ item: any; goBack: () => void }> = ({ item, goBack })
 
 const LevelThree: React.FC = () => {
   const [selected, setSelected] = useState<any | null>(null);
+  const [isCompleted, setIsCompleted] = useState(false);
+  const { currentUser } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const checkLevelCompletion = async () => {
+      if (!currentUser) return;
+
+      try {
+        const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          const hindiProgress = userData.languageProgress?.Hindi?.Foundation;
+          if (hindiProgress?.completedLevels?.includes(3)) {
+            setIsCompleted(true);
+          }
+        }
+      } catch (error) {
+        console.error('Error checking level completion:', error);
+      }
+    };
+
+    checkLevelCompletion();
+  }, [currentUser]);
+
+  const handleCompleteLevel = async () => {
+    if (!currentUser) {
+      toast.error('Please log in to save your progress');
+      return;
+    }
+
+    try {
+      const userRef = doc(db, 'users', currentUser.uid);
+      const userDoc = await getDoc(userRef);
+
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        const currentProgress = userData.languageProgress?.Hindi?.Foundation || {
+          currentLevel: 0,
+          completedLevels: []
+        };
+
+        // Update progress
+        await updateDoc(userRef, {
+          'languageProgress.Hindi.Foundation': {
+            ...currentProgress,
+            currentLevel: Math.max(currentProgress.currentLevel, 4),
+            completedLevels: [...(currentProgress.completedLevels || []), 3]
+          }
+        });
+
+        toast.success('Level completed! Moving to next level...');
+        navigate('/languages/Hindi/Foundation/Level4');
+      }
+    } catch (error) {
+      console.error('Error updating progress:', error);
+      toast.error('Failed to save progress. Please try again.');
+    }
+  };
 
   return selected ? (
     <WordCard item={selected} goBack={() => setSelected(null)} />
@@ -74,6 +138,21 @@ const LevelThree: React.FC = () => {
             {item.phrase}
           </Button>
         ))}
+      </div>
+      <div className="mt-8 flex justify-center gap-4">
+        <Button
+          onClick={() => navigate('/languages/Hindi/foundation/levels')}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg"
+        >
+          ← Back to Levels
+        </Button>
+        <Button
+          onClick={handleCompleteLevel}
+          className="bg-green-600 hover:bg-green-700 text-white px-8 py-4 text-lg"
+          disabled={isCompleted}
+        >
+          {isCompleted ? 'Level Completed ✓' : 'Complete Level & Move to Next'}
+        </Button>
       </div>
     </div>
   );

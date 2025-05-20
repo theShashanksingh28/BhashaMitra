@@ -1,5 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { doc, setDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import { toast } from "sonner";
 
 const languagesToLearn = [
   { name: "Assamese", script: "Assamese" },
@@ -29,6 +33,7 @@ const languagesToLearn = [
 
 export default function LanguagesToLearn() {
   const navigate = useNavigate();
+  const { currentUser } = useAuth();
   const [nativeLanguage, setNativeLanguage] = useState<string>('');
 
   useEffect(() => {
@@ -41,21 +46,36 @@ export default function LanguagesToLearn() {
     setNativeLanguage(storedNativeLanguage);
   }, [navigate]);
 
-  const handleLanguageSelect = (language: string) => {
-    console.log('Selected language to learn:', language);
-    console.log('Native language:', nativeLanguage);
-    
-    if (language === nativeLanguage) {
-      console.log('Cannot select native language');
+  const handleLanguageSelect = async (language: string) => {
+    if (!currentUser) {
+      toast.error("Please log in to continue");
+      navigate("/login");
       return;
     }
 
-    // Store the selected language to learn
-    localStorage.setItem('languageToLearn', language);
-    localStorage.setItem('hasSelectedLanguages', 'true');
-    
-    // Navigate to the language learning path
-    navigate(`/languages/${language}`);
+    if (language === nativeLanguage) {
+      toast.error("Cannot select your native language as the language to learn");
+      return;
+    }
+
+    try {
+      // Save to Firebase
+      await setDoc(doc(db, "users", currentUser.uid), {
+        learningLanguage: language,
+        updatedAt: new Date().toISOString()
+      }, { merge: true });
+
+      // Store in localStorage for immediate access
+      localStorage.setItem('languageToLearn', language);
+      localStorage.setItem('hasSelectedLanguages', 'true');
+      
+      toast.success("Language selection saved successfully!");
+      // Navigate to dashboard
+      navigate('/dashboard');
+    } catch (error) {
+      console.error("Error saving language selection:", error);
+      toast.error("Failed to save language selection. Please try again.");
+    }
   };
 
   return (

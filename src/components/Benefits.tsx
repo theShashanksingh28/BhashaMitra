@@ -5,35 +5,35 @@ const Benefits = () => {
   const [activeItem, setActiveItem] = useState(null);
 
   const benefitItems = [
-    {
-      icon: '💼',
-      title: 'Career Advancement',
+  {
+    icon: '💼',
+    title: 'Career Advancement',
       description: 'Enhance your resume and unlock new job opportunities with multilingual skills.',
       extendedDescription: 'Companies value employees who can communicate across language barriers, especially in a diverse country like India. Many organizations offer higher compensation for multilingual professionals.',
       color: 'from-blue-500 to-indigo-600'
-    },
-    {
-      icon: '🎭',
-      title: 'Cultural Connection',
+  },
+  {
+    icon: '🎭',
+    title: 'Cultural Connection',
       description: 'Deepen your understanding of India\'s diverse cultures through language.',
       extendedDescription: 'Language is the gateway to culture. By learning a regional language, you gain insights into traditions, literature, cinema, and the unique worldview of its speakers.',
       color: 'from-pink-500 to-rose-600'
-    },
-    {
-      icon: '✈️',
-      title: 'Travel Confidence',
+  },
+  {
+    icon: '✈️',
+    title: 'Travel Confidence',
       description: 'Navigate different regions of India with ease and connect with locals.',
       extendedDescription: 'Speaking the local language transforms you from a tourist to a traveler. Access authentic experiences, hidden gems, and forge meaningful connections with people you meet.',
       color: 'from-green-500 to-emerald-600'
-    },
-    {
-      icon: '🧠',
-      title: 'Cognitive Benefits',
+  },
+  {
+    icon: '🧠',
+    title: 'Cognitive Benefits',
       description: 'Improve memory, problem-solving skills, and multitasking abilities.',
       extendedDescription: 'Research shows that learning additional languages enhances brain function, delays cognitive decline, and improves decision-making abilities across all aspects of life.',
       color: 'from-violet-500 to-purple-600'
-    }
-  ];
+  }
+];
 
   return (
     <section className="py-20 bg-gradient-to-b from-slate-50 to-white">
@@ -49,7 +49,7 @@ const Benefits = () => {
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
           {benefitItems.map((item, index) => (
             <Card 
-              key={index} 
+              key={index}
               className={`relative overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform ${activeItem === index ? 'scale-105' : ''}`}
               onMouseEnter={() => setActiveItem(index)}
               onMouseLeave={() => setActiveItem(null)}
@@ -63,7 +63,7 @@ const Benefits = () => {
                   <div className="text-4xl relative z-10">{item.icon}</div>
                 </div>
                 <CardTitle className="text-xl font-bold">{item.title}</CardTitle>
-              </CardHeader>
+                </CardHeader>
               
               <CardContent className="relative">
                 <p className="text-gray-600 mb-4">{item.description}</p>
@@ -88,8 +88,8 @@ const Benefits = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
                   </svg>
                 </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
           ))}
         </div>
 

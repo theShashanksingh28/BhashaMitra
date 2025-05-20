@@ -1,4 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { doc, updateDoc, getDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
+import { Button } from "@/components/ui/button";
 
 const numbers = [
   { num: "१", word: "एक", meaning: "1", pronunciation: "ek" },
@@ -35,6 +41,30 @@ const Level6BhashaMitra = () => {
   const [selectedNumber, setSelectedNumber] = useState(null);
   const [userCount, setUserCount] = useState("");
   const [message, setMessage] = useState("");
+  const [isCompleted, setIsCompleted] = useState(false);
+  const { currentUser } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const checkLevelCompletion = async () => {
+      if (!currentUser) return;
+
+      try {
+        const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          const hindiProgress = userData.languageProgress?.Hindi?.Foundation;
+          if (hindiProgress?.completedLevels?.includes(6)) {
+            setIsCompleted(true);
+          }
+        }
+      } catch (error) {
+        console.error('Error checking level completion:', error);
+      }
+    };
+
+    checkLevelCompletion();
+  }, [currentUser]);
 
   const handleNumberSelect = (numObj) => {
     setSelectedNumber(numObj);
@@ -49,6 +79,41 @@ const Level6BhashaMitra = () => {
       setMessage("✅ Correct! Well done.");
     } else {
       setMessage(`❌ Incorrect. Try counting ${selectedNumber.meaning} objects.`);
+    }
+  };
+
+  const handleCompleteLevel = async () => {
+    if (!currentUser) {
+      toast.error('Please log in to save your progress');
+      return;
+    }
+
+    try {
+      const userRef = doc(db, 'users', currentUser.uid);
+      const userDoc = await getDoc(userRef);
+      
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        const currentProgress = userData.languageProgress?.Hindi?.Foundation || {
+          currentLevel: 0,
+          completedLevels: []
+        };
+
+        // Update progress
+        await updateDoc(userRef, {
+          'languageProgress.Hindi.Foundation': {
+            ...currentProgress,
+            currentLevel: Math.max(currentProgress.currentLevel, 7),
+            completedLevels: [...(currentProgress.completedLevels || []), 6]
+          }
+        });
+
+        toast.success('Level completed! Moving to next level...');
+        navigate('/languages/Hindi/Foundation/Level7');
+      }
+    } catch (error) {
+      console.error('Error updating progress:', error);
+      toast.error('Failed to save progress. Please try again.');
     }
   };
 
@@ -120,12 +185,21 @@ const Level6BhashaMitra = () => {
       )}
 
       <section className="text-center mt-8">
-        <button
-          onClick={() => alert("Great job! Keep practicing Hindi numbers!")}
-          className="bg-purple-600 text-white px-6 py-3 rounded text-lg hover:bg-purple-800"
+      <div className="mt-8 flex justify-center gap-4">
+        <Button 
+          onClick={() => navigate('/languages/Hindi/foundation/levels')}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg"
         >
-          Finish Level 6
-        </button>
+          ← Back to Levels
+        </Button>
+        <Button 
+          onClick={handleCompleteLevel}
+          className="bg-green-600 hover:bg-green-700 text-white px-8 py-4 text-lg"
+          disabled={isCompleted}
+        >
+          {isCompleted ? 'Level Completed ✓' : 'Complete Level & Move to Next'}
+        </Button>
+        </div>
       </section>
     </div>
   );

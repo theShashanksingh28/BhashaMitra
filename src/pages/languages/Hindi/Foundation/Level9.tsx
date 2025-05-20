@@ -1,4 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { doc, updateDoc, getDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
+import { Button } from "@/components/ui/button";
 
 const qaLessons = [
   {
@@ -42,6 +48,66 @@ const speakHindi = (text) => {
 };
 
 const Level9BhashaMitra = () => {
+  const [isCompleted, setIsCompleted] = useState(false);
+  const { currentUser } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const checkLevelCompletion = async () => {
+      if (!currentUser) return;
+
+      try {
+        const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          const hindiProgress = userData.languageProgress?.Hindi?.Foundation;
+          if (hindiProgress?.completedLevels?.includes(9)) {
+            setIsCompleted(true);
+          }
+        }
+      } catch (error) {
+        console.error('Error checking level completion:', error);
+      }
+    };
+
+    checkLevelCompletion();
+  }, [currentUser]);
+
+  const handleCompleteLevel = async () => {
+    if (!currentUser) {
+      toast.error('Please log in to save your progress');
+      return;
+    }
+
+    try {
+      const userRef = doc(db, 'users', currentUser.uid);
+      const userDoc = await getDoc(userRef);
+      
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        const currentProgress = userData.languageProgress?.Hindi?.Foundation || {
+          currentLevel: 0,
+          completedLevels: []
+        };
+
+        // Update progress
+        await updateDoc(userRef, {
+          'languageProgress.Hindi.Foundation': {
+            ...currentProgress,
+            currentLevel: Math.max(currentProgress.currentLevel, 10),
+            completedLevels: [...(currentProgress.completedLevels || []), 9]
+          }
+        });
+
+        toast.success('Level completed! Moving to next level...');
+        navigate('/languages/Hindi/Foundation/Level10');
+      }
+    } catch (error) {
+      console.error('Error updating progress:', error);
+      toast.error('Failed to save progress. Please try again.');
+    }
+  };
+
   return (
     <div className="max-w-3xl mx-auto p-6 bg-white rounded shadow-lg mt-10">
       <h1 className="text-3xl font-bold mb-6 text-center">Bhasha Mitra - Level 9: Basic Questions & Answers</h1>
@@ -84,6 +150,24 @@ const Level9BhashaMitra = () => {
           <div className="text-gray-600 italic">Meaning: {answer.meaning}</div>
         </div>
       ))}
+
+      <section className="text-center mt-8">
+      <div className="mt-8 flex justify-center gap-4">
+        <Button 
+          onClick={() => navigate('/languages/Hindi/foundation/levels')}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg"
+        >
+          ← Back to Levels
+        </Button>
+        <Button 
+          onClick={handleCompleteLevel}
+          className="bg-green-600 hover:bg-green-700 text-white px-8 py-4 text-lg"
+          disabled={isCompleted}
+        >
+          {isCompleted ? 'Level Completed ✓' : 'Complete Level & Move to Next'}
+        </Button>
+        </div>
+      </section>
     </div>
   );
 };

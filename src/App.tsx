@@ -30,7 +30,12 @@ import LevelEight from './pages/languages/Hindi/Foundation/Level8';
 import LevelNine from './pages/languages/Hindi/Foundation/Level9';
 import LevelTen from './pages/languages/Hindi/Foundation/Level10';
 
+// Public route component - accessible without authentication
+function PublicRoute({ children }: { children: React.ReactNode }) {
+  return <>{children}</>;
+}
 
+// Private route component - requires authentication
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { currentUser, loading } = useAuth();
 
@@ -47,9 +52,15 @@ const App = () => (
       <TooltipProvider>
         <Router>
           <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/login" element={<LoginForm />} />
-            <Route path="/signup" element={<SignupForm />} />
+            {/* Public Routes */}
+            <Route path="/" element={<PublicRoute><HomePage /></PublicRoute>} />
+            <Route path="/login" element={<PublicRoute><LoginForm /></PublicRoute>} />
+            <Route path="/signup" element={<PublicRoute><SignupForm /></PublicRoute>} />
+            <Route path="/features" element={<PublicRoute><HomePage /></PublicRoute>} />
+            <Route path="/benefits" element={<PublicRoute><HomePage /></PublicRoute>} />
+            <Route path="/about" element={<PublicRoute><HomePage /></PublicRoute>} />
+
+            {/* Private Routes */}
             <Route
               path="/native-language"
               element={
@@ -83,7 +94,7 @@ const App = () => (
               }
             />
             <Route
-              path="/languages/Hindi/foundation/level1"
+              path="/languages/Hindi/Foundation/level1"
               element={
                 <PrivateRoute>
                   <LevelOne />
@@ -91,7 +102,7 @@ const App = () => (
               }
             />
             <Route
-              path="/languages/Hindi/foundation/level2"
+              path="/languages/Hindi/Foundation/level2"
               element={
                 <PrivateRoute>
                   <LevelTwo />
@@ -99,7 +110,7 @@ const App = () => (
               }
             />
             <Route
-              path="/languages/Hindi/foundation/level3"
+              path="/languages/Hindi/Foundation/level3"
               element={
                 <PrivateRoute>
                   <LevelThree />
@@ -107,7 +118,7 @@ const App = () => (
               }
             />
             <Route
-              path="/languages/Hindi/foundation/level4"
+              path="/languages/Hindi/Foundation/level4"
               element={
                 <PrivateRoute>
                   <LevelFour />
@@ -115,7 +126,7 @@ const App = () => (
               }
             />
             <Route
-              path="/languages/Hindi/foundation/level5"
+              path="/languages/Hindi/Foundation/level5"
               element={
                 <PrivateRoute>
                   <LevelFive />
@@ -123,7 +134,7 @@ const App = () => (
               }
             />
             <Route
-              path="/languages/Hindi/foundation/level6"
+              path="/languages/Hindi/Foundation/level6"
               element={
                 <PrivateRoute>
                   <LevelSix />
@@ -131,7 +142,7 @@ const App = () => (
               }
             />
             <Route
-              path="/languages/Hindi/foundation/level7"
+              path="/languages/Hindi/Foundation/level7"
               element={
                 <PrivateRoute>
                   <LevelSeven />
@@ -139,7 +150,7 @@ const App = () => (
               }
             />
             <Route
-              path="/languages/Hindi/foundation/level8"
+              path="/languages/Hindi/Foundation/level8"
               element={
                 <PrivateRoute>
                   <LevelEight />
@@ -147,7 +158,7 @@ const App = () => (
               }
             />
             <Route
-              path="/languages/Hindi/foundation/level9"
+              path="/languages/Hindi/Foundation/level9"
               element={
                 <PrivateRoute>
                   <LevelNine />
@@ -155,14 +166,13 @@ const App = () => (
               }
             />
             <Route
-              path="/languages/Hindi/foundation/level10"
+              path="/languages/Hindi/Foundation/level10"
               element={
                 <PrivateRoute>
                   <LevelTen />
                 </PrivateRoute>
               }
             />
-
             <Route
               path="/languages/:language/:stage/level:levelNumber"
               element={

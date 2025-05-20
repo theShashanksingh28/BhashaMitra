@@ -16,7 +16,8 @@ import {
   Globe, 
   CheckCircle, 
   Lock,
-  ArrowRight
+  ArrowRight,
+  X
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { doc, getDoc, collection, query, where, getDocs, updateDoc } from 'firebase/firestore';
@@ -24,12 +25,15 @@ import { db } from '@/lib/firebase';
 import Sidebar from '@/components/Sidebar';
 import Footer from '@/components/Footer';
 import Navbar from '@/components/Navbar';
+import DictionaryTranslatorChatbot from './chatbot';
 
 // Types for our data structures
 interface UserProfile {
   name: string;
   email: string;
   language: string;
+  nativeLanguage: string;
+  learningLanguage: string;
   stats: {
     xp: number;
     streak: number;
@@ -88,6 +92,8 @@ export default function BhashaMitraDashboard() {
     name: 'User',
     email: '',
     language: 'Hindi',
+    nativeLanguage: 'Hindi',
+    learningLanguage: 'Hindi',
     stats: {
       xp: 0,
       streak: 0,
@@ -104,7 +110,7 @@ export default function BhashaMitraDashboard() {
   };
 
   useEffect(() => {
-    const fetchUserData = async () => {
+    const checkUserSetup = async () => {
       if (!currentUser) {
         navigate('/login');
         return;
@@ -112,71 +118,82 @@ export default function BhashaMitraDashboard() {
 
       try {
         setLoading(true);
-        // Fetch user profile
         const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+        
         if (userDoc.exists()) {
-          const data = userDoc.data() as UserProfile;
-          // Merge with default values to ensure all properties exist
+          const userData = userDoc.data();
+          
+          // Check if native language is selected
+          if (!userData.nativeLanguage) {
+            navigate('/native-language');
+            return;
+          }
+          
+          // Check if learning language is selected
+          if (!userData.learningLanguage) {
+            navigate('/language-selection');
+            return;
+          }
+
+          // If both languages are selected, proceed with dashboard data
           setUserProfile({
             ...defaultUserProfile,
-            ...data,
+            ...userData,
             stats: {
               ...defaultUserProfile.stats,
-              ...(data.stats || {})
+              ...(userData.stats || {})
             },
             lastActivity: {
               ...defaultUserProfile.lastActivity,
-              ...(data.lastActivity || {})
+              ...(userData.lastActivity || {})
             }
           });
+
+          // Fetch other dashboard data
+          const levelsQuery = query(collection(db, 'levels'));
+          const levelsSnapshot = await getDocs(levelsQuery);
+          const levelsData = levelsSnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          })) as Level[];
+          setLevels(levelsData);
+
+          const activitiesQuery = query(
+            collection(db, 'activities'),
+            where('language', '==', userData.learningLanguage)
+          );
+          const activitiesSnapshot = await getDocs(activitiesQuery);
+          const activitiesData = activitiesSnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          })) as Activity[];
+          setActivities(activitiesData);
+
+          const achievementsQuery = query(
+            collection(db, 'achievements'),
+            where('userId', '==', currentUser.uid)
+          );
+          const achievementsSnapshot = await getDocs(achievementsQuery);
+          const achievementsData = achievementsSnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          })) as Achievement[];
+          setAchievements(achievementsData);
+
         } else {
-          // If no user data exists, use default profile
-          setUserProfile(defaultUserProfile);
+          // If no user data exists, redirect to native language selection
+          navigate('/native-language');
         }
-
-        // Fetch levels
-        const levelsQuery = query(collection(db, 'levels'));
-        const levelsSnapshot = await getDocs(levelsQuery);
-        const levelsData = levelsSnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        })) as Level[];
-        setLevels(levelsData);
-
-        // Fetch activities
-        const activitiesQuery = query(
-          collection(db, 'activities'),
-          where('language', '==', currentLanguage)
-        );
-        const activitiesSnapshot = await getDocs(activitiesQuery);
-        const activitiesData = activitiesSnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        })) as Activity[];
-        setActivities(activitiesData);
-
-        // Fetch achievements
-        const achievementsQuery = query(
-          collection(db, 'achievements'),
-          where('userId', '==', currentUser.uid)
-        );
-        const achievementsSnapshot = await getDocs(achievementsQuery);
-        const achievementsData = achievementsSnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        })) as Achievement[];
-        setAchievements(achievementsData);
-
       } catch (error) {
-        console.error('Error fetching user data:', error);
+        console.error('Error checking user setup:', error);
         setError('Failed to load user data. Please try again.');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchUserData();
-  }, [currentUser, navigate, currentLanguage]);
+    checkUserSetup();
+  }, [currentUser, navigate]);
 
   const handleLogout = async () => {
     try {
@@ -206,6 +223,12 @@ export default function BhashaMitraDashboard() {
     setIsSidebarOpen(!isSidebarOpen);
   };
 
+  const handleLearningPathClick = () => {
+    if (userProfile?.learningLanguage) {
+      navigate(`/languages/${userProfile.learningLanguage}`);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -226,14 +249,99 @@ export default function BhashaMitraDashboard() {
   const profile = userProfile || defaultUserProfile;
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      {/* Sidebar */}
-      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+    <div className="flex min-h-screen bg-gray-50 relative">
+      {/* Custom Sidebar */}
+      <div className={`fixed inset-y-0 left-0 transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} z-30 
+                      w-64 bg-indigo-700 text-white transition-transform duration-300 ease-in-out 
+                      shadow-lg md:shadow-xl lg:shadow-2xl`}>
+        <div className="p-5">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-bold">BhashaMitra</h2>
+            <button onClick={toggleSidebar} className="text-white hover:text-indigo-200">
+              <X className="w-6 h-6" />
+            </button>
+          </div>
+          
+          <nav className="space-y-1">
+            <a href="/dashboard" className="flex items-center space-x-3 px-4 py-3 rounded-lg bg-indigo-800">
+              <BarChart2 className="w-5 h-5" />
+              <span>Dashboard</span>
+            </a>
+            
+            <a href="/profile" className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-indigo-800 transition-colors">
+              <User className="w-5 h-5" />
+              <span>Profile</span>
+            </a>
+            
+            <a href="/language" className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-indigo-800 transition-colors">
+              <Globe className="w-5 h-5" />
+              <span>Language Selection</span>
+            </a>
+            
+            <a href="/certificates" className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-indigo-800 transition-colors">
+              <Award className="w-5 h-5" />
+              <span>Certificates</span>
+            </a>
+            
+            <a href="/badges" className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-indigo-800 transition-colors">
+              <Award className="w-5 h-5" />
+              <span>Badges</span>
+            </a>
+            
+            <a href="/settings" className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-indigo-800 transition-colors">
+              <Settings className="w-5 h-5" />
+              <span>Settings</span>
+            </a>
+            
+            <button 
+              onClick={handleLogout}
+              className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-indigo-800 transition-colors w-full text-left mt-4"
+            >
+              <ArrowRight className="w-5 h-5" />
+              <span>Logout</span>
+            </button>
+          </nav>
+        </div>
+      </div>
+
+      {/* Overlay */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-20 md:hidden"
+          onClick={toggleSidebar}
+        ></div>
+      )}
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
-        {/* Use Navbar component */}
-        <Navbar />
+        {/* Custom Navbar with hamburger menu */}
+        <header className="fixed top-0 left-0 right-0 bg-white shadow-sm z-10">
+          <div className="px-6 py-4 flex items-center justify-between">
+            <div className="flex items-center">
+              <button 
+                onClick={toggleSidebar}
+                className="p-1 mr-4 rounded-md hover:bg-gray-100"
+              >
+                <Menu className="w-6 h-6 text-indigo-600" />
+              </button>
+              <h1 className="text-xl font-bold text-indigo-700">BhashaMitra</h1>
+            </div>
+            <div className="flex items-center space-x-4">
+              <div className="hidden md:flex items-center">
+                <span className="text-sm text-gray-600 mr-2">Learning:</span>
+                <span className="font-medium">{profile.language}</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center">
+                  <User className="w-5 h-5 text-indigo-600" />
+                </div>
+                <div className="hidden md:block">
+                  <span className="text-sm font-medium">{profile.name}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </header>
 
         {/* User Status Bar */}
         <div className="bg-indigo-50 px-6 py-3 mt-16">
@@ -320,7 +428,10 @@ export default function BhashaMitraDashboard() {
                     </div>
                   </div>
                 ))}
-                <button className="text-sm text-indigo-600 font-medium flex items-center mt-2 hover:text-indigo-800">
+                <button 
+                  onClick={handleLearningPathClick}
+                  className="text-sm text-indigo-600 font-medium flex items-center mt-2 hover:text-indigo-800"
+                >
                   View Full Path
                   <ArrowRight className="w-3 h-3 ml-1" />
                 </button>
@@ -357,23 +468,8 @@ export default function BhashaMitraDashboard() {
                 <MessageSquare className="w-5 h-5 mr-2 text-indigo-600" />
                 Chat with Mitra
               </h2>
-              <div className="space-y-3">
-                <button className="w-full flex items-center justify-between bg-gray-50 hover:bg-indigo-50 px-4 py-3 rounded-md transition-colors">
-                  <span className="text-gray-800">Ask grammar question</span>
-                  <span className="text-xl">💬</span>
-                </button>
-                <button className="w-full flex items-center justify-between bg-gray-50 hover:bg-indigo-50 px-4 py-3 rounded-md transition-colors">
-                  <span className="text-gray-800">Practice speaking</span>
-                  <span className="text-xl">🗣️</span>
-                </button>
-                <button className="w-full flex items-center justify-between bg-gray-50 hover:bg-indigo-50 px-4 py-3 rounded-md transition-colors">
-                  <span className="text-gray-800">Explain verb tense</span>
-                  <span className="text-xl">🤓</span>
-                </button>
-                <button className="text-sm text-indigo-600 font-medium flex items-center mt-2 hover:text-indigo-800">
-                  Open Full Chat
-                  <ArrowRight className="w-3 h-3 ml-1" />
-                </button>
+              <div className="h-[400px] border rounded-lg overflow-hidden">
+                <DictionaryTranslatorChatbot />
               </div>
             </div>
           </div>
@@ -471,8 +567,7 @@ export default function BhashaMitraDashboard() {
           </div>
         </div>
 
-        {/* Replace the old footer with the Footer component */}
-        <Footer />
+        <Footer/>
       </div>
     </div>
   );

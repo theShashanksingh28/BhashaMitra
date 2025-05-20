@@ -1,6 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button'; // Optional: use default <button> if needed
+import { useAuth } from '@/contexts/AuthContext';
+import { doc, updateDoc, getDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 // Type Declarations for Web Speech API
 interface SpeechRecognitionEvent extends Event {
@@ -251,6 +256,65 @@ const LevelFour: React.FC = () => {
   ];
 
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isCompleted, setIsCompleted] = useState(false);
+  const { currentUser } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const checkLevelCompletion = async () => {
+      if (!currentUser) return;
+
+      try {
+        const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          const hindiProgress = userData.languageProgress?.Hindi?.Foundation;
+          if (hindiProgress?.completedLevels?.includes(4)) {
+            setIsCompleted(true);
+          }
+        }
+      } catch (error) {
+        console.error('Error checking level completion:', error);
+      }
+    };
+
+    checkLevelCompletion();
+  }, [currentUser]);
+
+  const handleCompleteLevel = async () => {
+    if (!currentUser) {
+      toast.error('Please log in to save your progress');
+      return;
+    }
+
+    try {
+      const userRef = doc(db, 'users', currentUser.uid);
+      const userDoc = await getDoc(userRef);
+      
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        const currentProgress = userData.languageProgress?.Hindi?.Foundation || {
+          currentLevel: 0,
+          completedLevels: []
+        };
+
+        // Update progress
+        await updateDoc(userRef, {
+          'languageProgress.Hindi.Foundation': {
+            ...currentProgress,
+            currentLevel: Math.max(currentProgress.currentLevel, 5),
+            completedLevels: [...(currentProgress.completedLevels || []), 4]
+          }
+        });
+
+        toast.success('Level completed! Moving to next level...');
+        navigate('/languages/Hindi/Foundation/Level5');
+      }
+    } catch (error) {
+      console.error('Error updating progress:', error);
+      toast.error('Failed to save progress. Please try again.');
+    }
+  };
 
   const goBack = () => {
     if (currentIndex > 0) setCurrentIndex(currentIndex - 1);
@@ -262,13 +326,29 @@ const LevelFour: React.FC = () => {
 
   return (
     <div className="min-h-screen flex justify-center items-center bg-gray-100">
-      <DrillCard
-        item={words[currentIndex]}
-        goBack={goBack}
-        goNext={goNext}
-        hasPrevious={currentIndex > 0}
-        hasNext={currentIndex < words.length - 1}
-      />
+      <div className="w-full max-w-4xl">
+        <DrillCard
+          item={words[currentIndex]}
+          goBack={goBack}
+          goNext={goNext}
+          hasPrevious={currentIndex > 0}
+          hasNext={currentIndex < words.length - 1}
+        />
+<div className="mt-8 flex justify-center gap-4">
+        <Button 
+          onClick={() => navigate('/languages/Hindi/foundation/levels')}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg"
+        >
+          ← Back to Levels
+        </Button>          <Button 
+            onClick={handleCompleteLevel}
+            className="bg-green-600 hover:bg-green-700 text-white px-8 py-4 text-lg"
+            disabled={isCompleted}
+          >
+            {isCompleted ? 'Level Completed ✓' : 'Complete Level & Move to Next'}
+          </Button>
+        </div>
+      </div>
     </div>
   );
 };
