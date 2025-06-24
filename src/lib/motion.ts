@@ -1,6 +1,6 @@
 import { Variants } from 'framer-motion';
 
-export const staggerContainer = (staggerChildren: number, delayChildren: number): Variants => ({
+export const staggerContainer = (staggerChildren, delayChildren) => ({
   hidden: {},
   show: {
     transition: {
@@ -10,7 +10,7 @@ export const staggerContainer = (staggerChildren: number, delayChildren: number)
   },
 });
 
-export const fadeIn = (direction: string, type: string, delay: number, duration: number): Variants => ({
+export const fadeIn = (direction, type, delay, duration) => ({
   hidden: {
     x: direction === 'left' ? 100 : direction === 'right' ? -100 : 0,
     y: direction === 'up' ? 100 : direction === 'down' ? -100 : 0,

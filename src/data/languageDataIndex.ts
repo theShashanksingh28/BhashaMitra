@@ -7,10 +7,9 @@ import languageData5 from './languageData5';
 import languageData6 from './languageData6';
 import languageData7 from './languageData7';
 import languageData8 from './languageData8';
-import { Language } from './languageData';
 
 // Combine all language data into a single array
-const allLanguageData: Language[] = [
+const allLanguageData = [
   ...languageData,
   ...languageData2,
   ...languageData3,

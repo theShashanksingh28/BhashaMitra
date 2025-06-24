@@ -12,7 +12,7 @@ const LANGUAGES = [
   "Dogri", "Bodo", "Manipuri", "Nepali", "Sanskrit", "Urdu"
 ];
 
-const STAGES = ['Explorer', 'Navigator', 'FluentCommunicator', 'LanguageVirtuoso'] as const;
+const STAGES = ['Explorer', 'Navigator', 'FluentCommunicator', 'LanguageVirtuoso'];
 
 const generateLevelComponent = (
   language: string,
@@ -22,7 +22,7 @@ const generateLevelComponent = (
   return `import React from 'react';
 import LevelTemplate from '@/components/LevelTemplate';
 
-const ${language}${stage}Level${levelNumber}: React.FC = () => {
+const ${language}${stage}Level${levelNumber} = () => {
   return (
     <LevelTemplate
       language="${language}"

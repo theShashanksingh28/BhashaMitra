@@ -1,0 +1,160 @@
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { motion } from 'framer-motion';
+import { useAuth } from '@/contexts/AuthContext';
+import { doc, updateDoc, getDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
+
+const words = [
+  { phrase: 'पानी', roman: 'Pani', meaning: 'Water' },
+  { phrase: 'खाना', roman: 'Khaana', meaning: 'Food' },
+  { phrase: 'किताब', roman: 'Kitaab', meaning: 'Book' },
+  { phrase: 'दोस्त', roman: 'Dost', meaning: 'Friend' },
+  { phrase: 'घर', roman: 'Ghar', meaning: 'House' },
+  { phrase: 'स्कूल', roman: 'School', meaning: 'School' },
+  { phrase: 'माँ', roman: 'Maa', meaning: 'Mother' },
+  { phrase: 'पिता', roman: 'Pita', meaning: 'Father' },
+  { phrase: 'सूरज', roman: 'Sooraj', meaning: 'Sun' },
+  { phrase: 'चाँद', roman: 'Chaand', meaning: 'Moon' },
+  { phrase: 'फूल', roman: 'Phool', meaning: 'Flower' },
+  { phrase: 'पेड़', roman: 'Ped', meaning: 'Tree' },
+  { phrase: 'कुत्ता', roman: 'Kutta', meaning: 'Dog' },
+  { phrase: 'बिल्ली', roman: 'Billi', meaning: 'Cat' },
+  { phrase: 'गाड़ी', roman: 'Gaadi', meaning: 'Car' },
+  { phrase: 'सड़क', roman: 'Sadak', meaning: 'Road' },
+  { phrase: 'समय', roman: 'Samay', meaning: 'Time' },
+  { phrase: 'दुकान', roman: 'Dukaan', meaning: 'Shop' },
+  { phrase: 'खेल', roman: 'Khel', meaning: 'Game' },
+  { phrase: 'संगीत', roman: 'Sangeet', meaning: 'Music' },
+  { phrase: 'बाजार', roman: 'Bazaar', meaning: 'Market' },
+  { phrase: 'कमरा', roman: 'Kamra', meaning: 'Room' },
+  { phrase: 'दरवाजा', roman: 'Darwaaza', meaning: 'Door' },
+  { phrase: 'खिड़की', roman: 'Khirki', meaning: 'Window' },
+  { phrase: 'बिजली', roman: 'Bijli', meaning: 'Electricity' },
+  { phrase: 'आसमान', roman: 'Aasmaan', meaning: 'Sky' },
+  { phrase: 'समुद्र', roman: 'Samudra', meaning: 'Ocean' },
+  { phrase: 'पहाड़', roman: 'Pahaad', meaning: 'Mountain' },
+  { phrase: 'नदी', roman: 'Nadi', meaning: 'River' },
+  { phrase: 'चिड़िया', roman: 'Chidiya', meaning: 'Bird' }
+];
+
+const WordCard = ({ item, goBack }) => {
+  const playSound = (phrase) => {
+    const utterance = new SpeechSynthesisUtterance(phrase);
+    utterance.lang = 'hi-IN';
+    speechSynthesis.speak(utterance);
+  };
+
+  return (
+    <motion.div className="p-6 grid gap-4">
+      <Button onClick={goBack}>&larr; Back</Button>
+      <motion.div className="text-center text-5xl font-bold">{item.phrase}</motion.div>
+      <Card>
+        <CardContent className="text-center">
+          <p>Romanized: {item.roman}</p>
+          <p>Meaning: {item.meaning}</p>
+        </CardContent>
+      </Card>
+      <Button className="mt-4" onClick={() => playSound(item.phrase)}>
+        🔊 Hear Sound
+      </Button>
+    </motion.div>
+  );
+};
+
+const LevelThree = () => {
+  const [selected, setSelected] = useState(null);
+  const [isCompleted, setIsCompleted] = useState(false);
+  const { currentUser } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const checkLevelCompletion = async () => {
+      if (!currentUser) return;
+
+      try {
+        const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          const hindiProgress = userData.languageProgress?.Hindi?.Foundation;
+          if (hindiProgress?.completedLevels?.includes(3)) {
+            setIsCompleted(true);
+          }
+        }
+      } catch (error) {
+        console.error('Error checking level completion:', error);
+      }
+    };
+
+    checkLevelCompletion();
+  }, [currentUser]);
+
+  const handleCompleteLevel = async () => {
+    if (!currentUser) {
+      toast.error('Please log in to save your progress');
+      return;
+    }
+
+    try {
+      const userRef = doc(db, 'users', currentUser.uid);
+      const userDoc = await getDoc(userRef);
+
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        const currentProgress = userData.languageProgress?.Hindi?.Foundation || {
+          currentLevel: 0,
+          completedLevels: []
+        };
+
+        await updateDoc(userRef, {
+          'languageProgress.Hindi.Foundation': {
+            ...currentProgress,
+            currentLevel: Math.max(currentProgress.currentLevel, 4),
+            completedLevels: [...(currentProgress.completedLevels || []), 3]
+          }
+        });
+
+        toast.success('Level completed! Moving to next level...');
+        navigate('/languages/Hindi/Foundation/Level4');
+      }
+    } catch (error) {
+      console.error('Error updating progress:', error);
+      toast.error('Failed to save progress. Please try again.');
+    }
+  };
+
+  return selected ? (
+    <WordCard item={selected} goBack={() => setSelected(null)} />
+  ) : (
+    <div className="p-6 grid gap-4">
+      <div className="grid grid-cols-2 gap-2 mb-4">
+        <h2 className="col-span-2 text-xl font-bold">Learn Basic Words:</h2>
+        {words.map((item) => (
+          <Button key={item.phrase} onClick={() => setSelected(item)}>
+            {item.phrase}
+          </Button>
+        ))}
+      </div>
+      <div className="mt-8 flex justify-center gap-4">
+        <Button
+          onClick={() => navigate('/languages/Hindi/foundation/levels')}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg"
+        >
+          ← Back to Levels
+        </Button>
+        <Button
+          onClick={handleCompleteLevel}
+          className="bg-green-600 hover:bg-green-700 text-white px-8 py-4 text-lg"
+          disabled={isCompleted}
+        >
+          {isCompleted ? 'Level Completed ✓' : 'Complete Level & Move to Next'}
+        </Button>
+      </div>
+    </div>
+  );
+};
+
+export default LevelThree;
