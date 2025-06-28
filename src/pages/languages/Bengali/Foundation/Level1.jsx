@@ -52,8 +52,8 @@ const consonants = [
   { symbol: 'ह', roman: 'ha', pronunciation: 'ha' }
 ];
 
-const SymbolCard: React.FC<{ item: any; goBack: () => void }> = ({ item, goBack }) => {
-  const playSound = (symbol: string) => {
+const SymbolCard = ({ item, goBack }) => {
+  const playSound = (symbol) => {
     const utterance = new SpeechSynthesisUtterance(symbol);
     utterance.lang = 'hi-IN';
     speechSynthesis.speak(utterance);
@@ -76,8 +76,8 @@ const SymbolCard: React.FC<{ item: any; goBack: () => void }> = ({ item, goBack 
   );
 };
 
-const LevelOne: React.FC = () => {
-  const [selected, setSelected] = useState<any | null>(null);
+const LevelOne = () => {
+  const [selected, setSelected] = useState(null);
 
   return selected ? (
     <SymbolCard item={selected} goBack={() => setSelected(null)} />

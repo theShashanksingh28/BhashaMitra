@@ -19,7 +19,7 @@ const Badges = lazy(() => import('@/pages/Badges'));
 const LanguageToLearn = lazy(() => import('@/pages/LanguageToLearn'));
 const NativeLanguageSelection = lazy(() => import('@/pages/NativeLanguageSelection'));
 const LanguageStages = lazy(() => import('./pages/languages/LanguageStages'));
-const LanguageLevel = lazy(() => import('./pages/languages/LanguageLevel'));
+const LanguageLevel = lazy(() => import('./pages/languages/LanguageLevel.tsx'));
 const HomePage = lazy(() => import('@/pages/HomePage'));
 
 // Lazy load Hindi levels

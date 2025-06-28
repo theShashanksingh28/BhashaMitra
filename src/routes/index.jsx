@@ -11,7 +11,7 @@ import Dashboard from "../pages/Dashboard";
 import { useAuth } from '@/contexts/AuthContext';
 
 // Protected Route Component
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+const ProtectedRoute = ({ children }) => {
   const location = useLocation();
   const { currentUser } = useAuth();
   const hasSelectedLanguages = localStorage.getItem('hasSelectedLanguages') === 'true';
