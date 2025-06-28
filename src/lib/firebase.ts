@@ -1,17 +1,17 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore, collection, doc, getDoc } from 'firebase/firestore';
-import { getAnalytics, isSupported, Analytics } from 'firebase/analytics';
+import { getAnalytics, isSupported } from 'firebase/analytics';
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyAATHSpI_caOPNQTeHvHFv0wPgwyd9_EOE",
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "bhashamitra-a6d5a.firebaseapp.com",
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "bhashamitra-a6d5a",
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "bhashamitra-a6d5a.firebasestorage.app",
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "800521249086",
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:800521249086:web:ce637111855a2d8a8a8c6f",
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || "G-MFNNQBSD6V"
+  apiKey: "AIzaSyAATHSpI_caOPNQTeHvHFv0wPgwyd9_EOE",
+  authDomain: "bhashamitra-a6d5a.firebaseapp.com",
+  projectId: "bhashamitra-a6d5a",
+  storageBucket: "bhashamitra-a6d5a.firebasestorage.app",
+  messagingSenderId: "800521249086",
+  appId: "1:800521249086:web:ce637111855a2d8a8a8c6f",
+  measurementId: "G-MFNNQBSD6V"
 };
 
 // Initialize Firebase
@@ -24,7 +24,7 @@ export const auth = getAuth(app);
 export const db = getFirestore(app);
 
 // Initialize Analytics only if supported and not blocked
-let analytics: Analytics | null = null;
+let analytics = null;
 isSupported().then(yes => yes && (analytics = getAnalytics(app)))
   .catch(err => console.log('Analytics not supported:', err));
 

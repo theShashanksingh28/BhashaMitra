@@ -17,24 +17,24 @@ export default defineConfig(({ mode }) => ({
     },
   },
   build: {
-    target: 'es2015',
+    target: 'esnext',
     minify: 'terser',
-    outDir: 'dist',
-    assetsDir: 'assets',
-    sourcemap: false,
     rollupOptions: {
       output: {
         manualChunks: {
-          vendor: ['react', 'react-dom'],
-          router: ['react-router-dom'],
-          ui: ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-tabs'],
-          three: ['three', '@react-three/fiber', '@react-three/drei'],
+          vendor: ['react', 'react-dom', 'react-router-dom'],
+          ui: ['@/components/ui'],
         },
       },
     },
     chunkSizeWarningLimit: 1000,
+    sourcemap: false,
   },
   optimizeDeps: {
     include: ['react', 'react-dom', 'react-router-dom'],
+    force: false,
+  },
+  ssr: {
+    noExternal: ['@radix-ui/*'],
   },
 }));
