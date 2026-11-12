@@ -157,16 +157,12 @@ const Navbar = memo(() => {
             </div>
           ) : (
             <>
-              <Link to="/login">
-                <Button className="bg-white text-indigo-600 border border-indigo-200 hover:bg-indigo-50 hover:border-indigo-300 rounded-full px-6 transition-colors duration-300">
-                  Login
-                </Button>
-              </Link>
-              <Link to="/signup">
-                <Button className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-full px-6 shadow-sm hover:shadow transition-all duration-300">
-                  Sign Up
-                </Button>
-              </Link>
+              <Button asChild className="bg-white text-indigo-600 border border-indigo-200 hover:bg-indigo-50 hover:border-indigo-300 rounded-full px-6 transition-colors duration-300">
+                <Link to="/login">Login</Link>
+              </Button>
+              <Button asChild className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-full px-6 shadow-sm hover:shadow transition-all duration-300">
+                <Link to="/signup">Sign Up</Link>
+              </Button>
             </>
           )}
         </div>
@@ -194,7 +190,7 @@ const Navbar = memo(() => {
       </nav>
       
       {/* Mobile Menu */}
-      <div className={`md:hidden transition-all duration-300 ease-in-out overflow-hidden ${
+      <div className={`md:hidden relative z-50 transition-all duration-300 ease-in-out overflow-hidden ${
         mobileMenuOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
       }`}>
         <div className="flex flex-col space-y-3 px-4 py-4 bg-white/95 border-t border-gray-100">
@@ -248,16 +244,12 @@ const Navbar = memo(() => {
               </Button>
             ) : (
               <>
-                <Link to="/login" className="w-full" onClick={() => setMobileMenuOpen(false)}>
-                  <Button className="bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-full w-full">
-                    Login
-                  </Button>
-                </Link>
-                <Link to="/signup" className="w-full" onClick={() => setMobileMenuOpen(false)}>
-                  <Button className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-full w-full">
-                    Sign Up
-                  </Button>
-                </Link>
+                <Button asChild className="bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-full w-full">
+                  <Link to="/login" onClick={() => setMobileMenuOpen(false)}>Login</Link>
+                </Button>
+                <Button asChild className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-full w-full">
+                  <Link to="/signup" onClick={() => setMobileMenuOpen(false)}>Sign Up</Link>
+                </Button>
               </>
             )}
           </div>

@@ -35,69 +35,78 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const signup = async (email, password, name) => {
+    setError(null);
+
+    let user;
     try {
-      setError(null);
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
+      user = userCredential.user;
+    } catch (authError) {
+      setError(authError.message);
+      throw authError;
+    }
 
-      // Update user profile
+    // Profile setup must not fail the signup: the account already exists.
+    const now = new Date().toISOString();
+    try {
       await updateProfile(user, { displayName: name });
+    } catch (profileError) {
+      console.warn('Account created, but display name could not be set:', profileError);
+    }
 
-      // Create user document in Firestore
-      await setDoc(doc(db, 'users', user.uid), {
+    await Promise.allSettled([
+      setDoc(doc(db, 'users', user.uid), {
         name,
         email,
-        createdAt: new Date().toISOString(),
-        lastLogin: new Date().toISOString(),
+        createdAt: now,
+        lastLogin: now,
         preferences: {
           theme: 'light',
           notifications: true
         }
-      });
-
-      // Create user progress document
-      await setDoc(doc(db, 'userProgress', user.uid), {
+      }),
+      setDoc(doc(db, 'userProgress', user.uid), {
         selectedLanguage: '',
         completedLessons: [],
         totalScore: 0,
-        lastLogin: new Date().toISOString(),
+        lastLogin: now,
         streak: 0,
         dailyGoal: 100,
         weeklyProgress: 0
-      });
-
-      // Create user achievements document
-      await setDoc(doc(db, 'achievements', user.uid), {
+      }),
+      setDoc(doc(db, 'achievements', user.uid), {
         unlocked: [],
         progress: {}
-      });
-
-    } catch (error) {
-      setError(error.message);
-      throw error;
-    }
+      })
+    ]).then((results) => {
+      results
+        .filter((result) => result.status === 'rejected')
+        .forEach((result) => console.warn('Failed to save user data:', result.reason));
+    });
   };
 
   const login = async (email, password) => {
+    setError(null);
+
+    let user;
     try {
-      setError(null);
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
-
-      // Update last login
-      await updateDoc(doc(db, 'users', user.uid), {
-        lastLogin: new Date().toISOString()
-      });
-
-      // Update user progress
-      await updateDoc(doc(db, 'userProgress', user.uid), {
-        lastLogin: new Date().toISOString()
-      });
-
-    } catch (error) {
-      setError(error.message);
-      throw error;
+      user = userCredential.user;
+    } catch (authError) {
+      setError(authError.message);
+      throw authError;
     }
+
+    // Keep the login successful even if the profile sync fails.
+    const now = new Date().toISOString();
+    await Promise.allSettled([
+      setDoc(doc(db, 'users', user.uid), { lastLogin: now }, { merge: true }),
+      setDoc(doc(db, 'userProgress', user.uid), { lastLogin: now }, { merge: true }),
+    ]).then((results) => {
+      results
+        .filter((result) => result.status === 'rejected')
+        .forEach((result) => console.warn('Failed to update last login:', result.reason));
+    });
   };
 
   const logout = async () => {

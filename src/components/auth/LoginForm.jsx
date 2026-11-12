@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Link } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { getAuthErrorMessage } from '@/utils/authErrors';
 
 const LoginForm = () => {
   const [formData, setFormData] = useState({
@@ -66,7 +67,7 @@ const LoginForm = () => {
         navigate('/native-language');
       }
     } catch (err) {
-      setError(err.message || 'An error occurred during login. Please try again.');
+      setError(getAuthErrorMessage(err));
       console.error('Login error:', err);
     } finally {
       setIsLoading(false);

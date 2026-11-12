@@ -60,11 +60,9 @@ const Hero = memo(() => {
               >
                 Get Started
               </Button>
-              <Link to="/learn-more">
-                <Button variant="outline" className="rounded-full px-8 py-6 text-lg border-2 hover:bg-indigo-50 transition-colors duration-300">
-                  Learn More
-                </Button>
-              </Link>
+              <Button asChild variant="outline" className="rounded-full px-8 py-6 text-lg border-2 hover:bg-indigo-50 transition-colors duration-300">
+                <Link to="/learn-more">Learn More</Link>
+              </Button>
             </div>
           </motion.div>
           

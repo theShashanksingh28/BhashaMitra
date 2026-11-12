@@ -11,16 +11,12 @@ const CallToAction = () => {
         </p>
         
         <div className="flex flex-wrap justify-center gap-5">
-          <Link to="/signup">
-            <Button className="bg-orange-500 hover:bg-orange-600 text-white text-base px-6 py-2 h-auto rounded-full font-medium shadow-md hover:shadow-lg transition-all duration-300">
-              Sign Up Free
-            </Button>
-          </Link>
-          <Link to="/dashboard">
-            <Button variant="outline" className="border border-white text-white hover:bg-white hover:text-indigo-600 text-base px-6 py-2 h-auto rounded-full font-medium transition-all duration-300">
-              Explore Courses
-            </Button>
-          </Link>
+          <Button asChild className="bg-orange-500 hover:bg-orange-600 text-white text-base px-6 py-2 h-auto rounded-full font-medium shadow-md hover:shadow-lg transition-all duration-300">
+            <Link to="/signup">Sign Up Free</Link>
+          </Button>
+          <Button asChild variant="outline" className="border border-white text-white hover:bg-white hover:text-indigo-600 text-base px-6 py-2 h-auto rounded-full font-medium transition-all duration-300">
+            <Link to="/dashboard">Explore Courses</Link>
+          </Button>
         </div>
       </div>
     </section>

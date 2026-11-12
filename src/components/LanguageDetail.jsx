@@ -2,7 +2,6 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Lock } from 'lucide-react';
-import { Language, Level } from '@/data/languageData';
 
 const LanguageDetail = ({ language }) => {
   const [selectedLevel, setSelectedLevel] = React.useState(null);

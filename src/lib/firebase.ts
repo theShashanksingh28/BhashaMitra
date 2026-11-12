@@ -5,14 +5,24 @@ import { getAnalytics, isSupported } from 'firebase/analytics';
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyAATHSpI_caOPNQTeHvHFv0wPgwyd9_EOE",
-  authDomain: "bhashamitra-a6d5a.firebaseapp.com",
-  projectId: "bhashamitra-a6d5a",
-  storageBucket: "bhashamitra-a6d5a.firebasestorage.app",
-  messagingSenderId: "800521249086",
-  appId: "1:800521249086:web:ce637111855a2d8a8a8c6f",
-  measurementId: "G-MFNNQBSD6V"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
+
+const requiredConfigKeys = ['apiKey', 'authDomain', 'projectId', 'appId'] as const;
+const missingConfigKeys = requiredConfigKeys.filter((key) => !firebaseConfig[key]);
+
+if (missingConfigKeys.length > 0) {
+  throw new Error(
+    `Missing Firebase configuration: ${missingConfigKeys.join(', ')}. ` +
+    'Fill in the VITE_FIREBASE_* values in .env and restart the dev server.'
+  );
+}
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);

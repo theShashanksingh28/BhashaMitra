@@ -49,7 +49,7 @@ const LanguagesPage = () => {
     <div className="min-h-screen flex flex-col">
       <Navbar />
       
-      <div className="container mx-auto py-8 px-4 flex-1">
+      <div className="container mx-auto pt-24 pb-8 px-4 flex-1">
         {selectedLanguage ? (
           <div>
             <button 

@@ -21,6 +21,8 @@ const NativeLanguageSelection = lazy(() => import('@/pages/NativeLanguageSelecti
 const LanguageStages = lazy(() => import('./pages/languages/LanguageStages'));
 const LanguageLevel = lazy(() => import('./pages/languages/LanguageLevel.tsx'));
 const HomePage = lazy(() => import('@/pages/HomePage'));
+const LanguagesPage = lazy(() => import('@/pages/LanguagesPage'));
+const NotFound = lazy(() => import('@/pages/NotFound'));
 
 // Lazy load Hindi levels
 const LevelOne = lazy(() => import('./pages/languages/Hindi/Foundation/Level1'));
@@ -69,7 +71,7 @@ const App = memo(() => (
   <LanguageProvider>
     <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
       <TooltipProvider>
-        <Router>
+        <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           <Routes>
             {/* Public Routes */}
             <Route path="/" element={<PublicRoute><HomePage /></PublicRoute>} />
@@ -78,6 +80,8 @@ const App = memo(() => (
             <Route path="/features" element={<PublicRoute><HomePage /></PublicRoute>} />
             <Route path="/benefits" element={<PublicRoute><HomePage /></PublicRoute>} />
             <Route path="/about" element={<PublicRoute><HomePage /></PublicRoute>} />
+            <Route path="/learn-more" element={<PublicRoute><HomePage /></PublicRoute>} />
+            <Route path="/languages" element={<PublicRoute><LanguagesPage /></PublicRoute>} />
 
             {/* Private Routes */}
             <Route
@@ -232,6 +236,9 @@ const App = memo(() => (
                 </PrivateRoute>
               }
             />
+
+            {/* Catch-all */}
+            <Route path="*" element={<PublicRoute><NotFound /></PublicRoute>} />
           </Routes>
           <Toaster />
           <Sonner />
